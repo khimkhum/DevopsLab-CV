@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: CV Lab
+    orgId: 1
+    folder: CV Lab
+    type: file
+    disableDeletion: false
+    editable: false
+    options:
+      path: /etc/grafana/dashboards

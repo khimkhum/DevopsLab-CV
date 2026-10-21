@@ -1,0 +1,18 @@
+groups:
+  - name: cv-origin
+    rules:
+      - alert: CVOriginUnavailable
+        expr: probe_success{job="cv-origin"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: CV origin is not serving its health endpoint
+          description: "{{ $labels.instance }} failed health probes for one minute."
+      - alert: CVProbeScrapeUnavailable
+        expr: up{job="cv-origin"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Prometheus cannot collect the CV probe result

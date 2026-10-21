@@ -1,0 +1,51 @@
+name: khimkum-cv
+services:
+  cv:
+    image: khimkum-cv:${APP_REVISION:-local-development}
+    build:
+      context: .
+      args:
+        APP_REVISION: ${APP_REVISION:-local-development}
+    user: "101:101"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.50
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - web
+  cv-access:
+    image: nginxinc/nginx-unprivileged:stable-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+    entrypoint: [nginx, -g, "daemon off;"]
+    volumes:
+      - ./infra/nginx/local-access.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      cv:
+        condition: service_healthy
+    user: "101:101"
+    read_only: true
+    tmpfs: ["/tmp:size=8m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 32m
+    cpus: 0.25
+    pids_limit: 50
+    networks: [web, local-access]
+networks:
+  web:
+    internal: true
+  local-access:

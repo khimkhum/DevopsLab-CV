@@ -1,0 +1,47 @@
+{
+  "uid": "khimkum-cv",
+  "title": "Khimkum CV — Origin health",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "timezone": "browser",
+  "time": { "from": "now-1h", "to": "now" },
+  "tags": ["cv", "local-origin"],
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Origin reachable",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_success{job=\"cv-origin\"}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 1, "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "HTTP status",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_http_status_code{job=\"cv-origin\"}", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Successful probes — 1 hour",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "avg_over_time(probe_success{job=\"cv-origin\"}[1h]) * 100", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Probe duration",
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_duration_seconds{job=\"cv-origin\"}", "refId": "A", "legendFormat": "Origin probe" }],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 5, "type": "text", "title": "Scope of this dashboard",
+      "gridPos": { "x": 0, "y": 13, "w": 24, "h": 4 },
+      "options": { "mode": "markdown", "content": "This dashboard probes the local CV origin. It does not establish public DNS, Tunnel availability, host uptime or an external notification channel. An independent probe outside the home network is still required." }
+    }
+  ]
+}
