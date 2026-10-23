@@ -1,0 +1,65 @@
+x-cv-defaults: &cv-defaults
+  restart: "no"
+  mem_limit: 512m
+  logging: !override
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "3"
+
+services:
+  log:
+    <<: *cv-defaults
+    container_name: cv-harbor-log
+    ports: !reset []
+
+  registry:
+    <<: *cv-defaults
+    container_name: cv-harbor-registry
+
+  registryctl:
+    <<: *cv-defaults
+    container_name: cv-harbor-registryctl
+
+  postgresql:
+    <<: *cv-defaults
+    container_name: cv-harbor-db
+    mem_limit: 1g
+
+  core:
+    <<: *cv-defaults
+    container_name: cv-harbor-core
+
+  portal:
+    <<: *cv-defaults
+    container_name: cv-harbor-portal
+
+  jobservice:
+    <<: *cv-defaults
+    container_name: cv-harbor-jobservice
+    depends_on:
+      core:
+        condition: service_healthy
+
+  redis:
+    <<: *cv-defaults
+    container_name: cv-harbor-redis
+
+  proxy:
+    <<: *cv-defaults
+    container_name: cv-harbor-proxy
+    ports: !override
+      - "127.0.0.1:8443:8443"
+    networks:
+      harbor:
+        aliases:
+          - harbor.cv.test
+
+  trivy-adapter:
+    <<: *cv-defaults
+    container_name: cv-harbor-trivy
+    mem_limit: 1536m
+
+networks:
+  harbor:
+    name: cv-harbor-net
