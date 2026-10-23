@@ -12,6 +12,10 @@ ENV APP_REVISION=${APP_REVISION}
 RUN npm run build && npm test
 
 FROM ${NGINX_IMAGE} AS runtime
+USER 0
+RUN apk upgrade --no-cache zlib musl musl-utils \
+    && apk --no-network list --installed zlib musl musl-utils
+
 COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build --chown=101:101 /app/dist/ /usr/share/nginx/html/
 USER 101:101
