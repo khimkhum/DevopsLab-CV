@@ -1,7 +1,7 @@
 name: khimkum-cv
 services:
   cv:
-    image: khimkum-cv:${APP_REVISION:-local-development}
+    image: ${CV_DEPLOY_IMAGE:-khimkum-cv:${APP_REVISION:-local-development}}
     build:
       context: .
       args:
