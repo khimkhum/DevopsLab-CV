@@ -58,6 +58,26 @@ docker compose stop cv
 
 `restart: unless-stopped` chỉ hỗ trợ khi Docker Engine đang chạy; không chứng minh Windows boot sẽ khởi động Docker Desktop/WSL hoặc website.
 
+## Chuẩn bị trên bản clone mới
+
+Docker Desktop phải chạy và bật WSL integration.
+
+```bash
+cp .env.example .env
+
+docker build \
+  --target gateway \
+  --tag khimkum-gateway:local-development \
+  .
+
+bash scripts/start-local.sh
+python3 scripts/smoke-test.py
+```
+
+Cấu hình mẫu dùng image local, không cần truy cập Harbor private.
+Máy triển khai release dùng các biến image theo digest trong .env;
+không dùng start-local.sh để build đè bản release.
+
 ## Monitoring giai đoạn Compose
 
 Các file monitoring nằm trong `infra/monitoring`. Cần tạo password admin Grafana trước khi khởi chạy và giữ file đó ngoài Git; không dùng password mặc định. File secret được Compose đọc là `.secrets/grafana_admin_password`, thư mục này phải được bảo vệ bằng quyền Windows phù hợp.

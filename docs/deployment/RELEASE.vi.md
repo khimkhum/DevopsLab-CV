@@ -26,3 +26,20 @@
 - Quét, kiểm thử và triển khai image gateway đã vá.
 - Diễn tập rollback có kiểm soát.
 - Hoàn thiện lab Kaniko.
+
+## Gateway đã triển khai
+- Commit build: 895f4e20052ebbdaaee60a0bc0d90030fcbc1d2a
+- Artifact: harbor.cv.test:8443/cv/gateway@sha256:cd8edd6e4a41a2f583890865a2766bd73ed8e0eda55f4ac78486e074bdb930a1
+- cv-access và monitoring-access dùng chung artifact, mount cấu hình riêng.
+- nginx -t thành công trên cả hai cấu hình trước triển khai.
+- CV local và public: smoke test PASS sau thay gateway.
+- Grafana /api/health: database ok.
+- Prometheus /-/ready và Alertmanager /-/ready: thành công.
+- Triển khai chỉ tạo lại hai gateway bằng --no-deps --no-build.
+- GATEWAY_DEPLOY_IMAGE được lưu trong .env để dùng lại khi khởi động.
+
+## Giới hạn đã biết
+- Kết quả scan phản ánh cơ sở dữ liệu lỗ hổng tại thời điểm quét.
+- Bước apk upgrade dùng repository hiện tại, nên pin base digest
+  chưa bảo đảm toàn bộ quá trình build tái lập tuyệt đối.
+- Chưa diễn tập rollback thực tế.

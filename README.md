@@ -31,6 +31,9 @@ The tunnel runs as a systemd service under a dedicated Linux account.
 - Local and public HTTP smoke tests.
 - Startup automation after Windows sign-in.
 - Reboot and external mobile-network checks completed.
+- Private Harbor registry with TLS and separate push/pull robot accounts.
+- Trivy scanning and runtime package remediation.
+- CV and gateway deployment by immutable artifact digest.
 
 ## Verification
 
@@ -55,8 +58,9 @@ The tunnel runs as a systemd service under a dedicated Linux account.
 ## Roadmap status
 
 - Phase 1: Linux and WSL foundations used throughout the lab.
-- Phase 2: CV, Compose, public access and monitoring implemented;
-  Harbor and the Kaniko exercise remain.
+- Phase 2: CV, Compose, monitoring, Harbor and digest-based deployment
+  implemented; rollback rehearsal and Kaniko exercise remain.
+
 - Phase 3: Kubernetes — planned.
 - Phase 4: GitLab CI and runner — planned.
 - Phase 5: Argo CD GitOps — planned.
@@ -71,3 +75,4 @@ original learning roadmap.
 - [Architecture](docs/architecture/FLOW.vi.md)
 - [Local deployment](docs/deployment/LOCAL.vi.md)
 - [Learning journal](notes/learning-log.md)
+- [Release evidence and recovery](docs/deployment/RELEASE.vi.md)
