@@ -19,6 +19,9 @@ RUN apk add --no-cache --upgrade \
       zlib musl musl-utils brotli-libs
 USER 101:101
 
+FROM nginx-patched AS gateway
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
 FROM nginx-patched AS runtime
 COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build --chown=101:101 /app/dist/ /usr/share/nginx/html/
