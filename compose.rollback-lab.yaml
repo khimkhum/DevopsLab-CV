@@ -1,0 +1,17 @@
+name: cv-rollback-lab
+
+services:
+  cv:
+    image: harbor.cv.test:8443/cv/portfolio@sha256:036a115ee4ad4e06eecee1ba30fa4138ab2e08c57a08b8f4778108db7becc3d5
+    user: "101:101"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: "no"
+    mem_limit: 128m
+    cpus: 0.50
+    pids_limit: 100
+    ports:
+      - "127.0.0.1:18080:8080"

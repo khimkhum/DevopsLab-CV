@@ -1,0 +1,8 @@
+services:
+  cv:
+    entrypoint:
+      - nginx
+      - -c
+      - /etc/nginx/rollback-intentionally-missing.conf
+      - -g
+      - daemon off;

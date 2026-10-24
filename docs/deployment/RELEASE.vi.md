@@ -42,4 +42,11 @@
 - Kết quả scan phản ánh cơ sở dữ liệu lỗ hổng tại thời điểm quét.
 - Bước apk upgrade dùng repository hiện tại, nên pin base digest
   chưa bảo đảm toàn bộ quá trình build tái lập tuyệt đối.
-- Chưa diễn tập rollback thực tế.
+- - Ngày 2026-10-24: đã diễn tập rollback cấu hình trên project
+  cv-rollback-lab tại 127.0.0.1:18080.
+- Override entrypoint trỏ đến file Nginx không tồn tại:
+  container thoát mã 1, log xác nhận đúng nguyên nhân.
+- Bỏ override và tạo lại container: healthy, smoke test PASS,
+  metadata trước/sau giống nhau.
+- Đã dọn lab và xác nhận smoke test public PASS.
+- Chưa diễn tập rollback trên production.
