@@ -61,7 +61,8 @@ The tunnel runs as a systemd service under a dedicated Linux account.
 - Phase 2: CV, Compose, monitoring, Harbor and digest-based deployment
   implemented; rollback rehearsal and Kaniko exercise remain.
 
-- Phase 3: Kubernetes — planned.
+- Phase 3: In progress — Kubernetes deployment, Ingress, ConfigMap,
+  RBAC, NetworkPolicy and failed-rollout recovery verified.
 - Phase 4: GitLab CI and runner — planned.
 - Phase 5: Argo CD GitOps — planned.
 - Phase 6: staging/production delivery and rollback — planned.

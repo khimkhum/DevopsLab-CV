@@ -30,3 +30,17 @@
 - Truy cập qua Traefik và phân giải DNS vẫn hoạt động.
 - Pod kiểm thử đã được dọn.
 - Giữ policy cv-isolation trong cấu hình triển khai.
+
+## Rollout lỗi và rollback
+
+- Baseline: hai Pod Ready; lưu revision, Pod template và version.json.
+- Patch command Nginx để đọc file cấu hình không tồn tại.
+- Pod mới CrashLoopBackOff; log xác nhận nguyên nhân.
+- Rollout status hết thời gian chờ; không tự rollback.
+- Hai Pod cũ vẫn Ready; smoke test trong lúc lỗi PASS.
+- Endpoint Pod lỗi có ready=false.
+- Rollback về revision đã lưu thành công.
+- Pod template trước/sau giống nhau.
+- Release metadata trước/sau giống nhau; smoke test PASS.
+- ReplicaSet lỗi về 0; Deployment có hai replica cập nhật và khả dụng.
+- Bài thử giữ nguyên image digest.

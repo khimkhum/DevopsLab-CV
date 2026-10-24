@@ -1,0 +1,15 @@
+spec:
+  template:
+    metadata:
+      labels:
+        rollback-test: fail-start
+    spec:
+      containers:
+        - name: cv
+          command:
+            - nginx
+          args:
+            - -c
+            - /etc/nginx/rollback-intentionally-missing.conf
+            - -g
+            - daemon off;
