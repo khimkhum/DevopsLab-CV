@@ -11,3 +11,22 @@
 - Scale lên ba replica: đạt; apply manifest trở lại hai replica.
 - Các bài thử chưa đo khả năng phục vụ liên tục khi có lỗi.
 - Một node không cung cấp khả năng chịu lỗi node.
+
+## ConfigMap, RBAC và NetworkPolicy
+
+- Nginx dùng ConfigMap immutable cv-nginx-v1.
+- nginx -t thành công; smoke test qua Ingress PASS.
+- Một lần smoke test ngay sau rollout bị timeout.
+  Chạy lại PASS; nguyên nhân timeout chưa xác định.
+
+- ServiceAccount cv-observer được xem Pod trong cv-lab.
+- Không được đọc Secret, xóa Pod hoặc xem Pod ở kube-system.
+
+- Trước NetworkPolicy: HTTP hai chiều giữa Pod kiểm thử
+  và ứng dụng CV đều trả ok.
+- Sau NetworkPolicy: cả hai kết nối bị Connection refused.
+- Kiểm tra firewall node thấy cơ chế REJECT
+  với icmp-port-unreachable.
+- Truy cập qua Traefik và phân giải DNS vẫn hoạt động.
+- Pod kiểm thử đã được dọn.
+- Giữ policy cv-isolation trong cấu hình triển khai.

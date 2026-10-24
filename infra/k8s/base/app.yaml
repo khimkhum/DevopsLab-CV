@@ -69,11 +69,18 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
       volumes:
         - name: tmp
           emptyDir:
             medium: Memory
             sizeLimit: 16Mi
+        - name: nginx-config
+          configMap:
+            name: cv-nginx-v1
 ---
 apiVersion: v1
 kind: Service
