@@ -50,3 +50,10 @@
   metadata trước/sau giống nhau.
 - Đã dọn lab và xác nhận smoke test public PASS.
 - Chưa diễn tập rollback trên production.
+
+## Quét lại ngày 2026-10-24
+- Artifact CV trước đó và artifact Kaniko bị báo High sau quét lại.
+- Artifact Kaniko có CVE-2026-111497 tại brotli-libs 1.2.0-r1.
+- Bản vá Alpine: brotli-libs 1.2.1-r0.
+- Cập nhật stage nginx-patched dùng chung cho CV và gateway.
+- Artifact thay thế cần được scan và kiểm thử trước triển khai.

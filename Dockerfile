@@ -13,12 +13,11 @@ RUN npm run build && npm test
 
 FROM ${NGINX_IMAGE} AS nginx-patched
 USER 0
-RUN apk upgrade --no-cache zlib musl musl-utils \
-    && apk --no-network list --installed zlib musl musl-utils
+RUN apk add --no-cache --upgrade \
+      zlib musl musl-utils 'brotli-libs>=1.2.1-r0' \
+    && apk --no-network list --installed \
+      zlib musl musl-utils brotli-libs
 USER 101:101
-
-FROM nginx-patched AS gateway
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 FROM nginx-patched AS runtime
 COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
