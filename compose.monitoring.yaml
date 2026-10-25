@@ -33,7 +33,7 @@ services:
     mem_limit: 64m
     cpus: 0.25
     pids_limit: 50
-    networks: [observability, web]
+    networks: [observability, web, cluster]
 
   alertmanager:
     image: prom/alertmanager:v0.34.1
@@ -102,6 +102,9 @@ services:
 networks:
   observability:
     internal: true
+  cluster:
+    external: true
+    name: cv-harbor-net 
   monitoring-local:
 
 secrets:

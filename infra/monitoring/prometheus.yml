@@ -16,7 +16,7 @@ scrape_configs:
     params:
       module: [cv_health]
     static_configs:
-      - targets: [http://cv:8080/healthz]
+      - targets: [http://k3d-cv-lab-serverlb:80/healthz]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

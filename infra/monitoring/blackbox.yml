@@ -7,4 +7,6 @@ modules:
       valid_status_codes: [200]
       preferred_ip_protocol: ip4
       follow_redirects: false
+      headers:
+        Host: khimkum.xyz
       fail_if_body_not_matches_regexp: [ok]

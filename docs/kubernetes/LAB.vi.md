@@ -71,3 +71,15 @@
 - Public smoke test chạy lại PASS.
 - Timeout PDF public trước đó chưa xác định nguyên nhân.
 - Đường public hiện vẫn qua Compose.
+
+## Chuyển origin public sang Kubernetes
+
+- Tunnel systemd chuyển tới 127.0.0.1:18081.
+- HTTP Host khimkum.xyz chọn Ingress production.
+- Public smoke test PASS.
+- Request public có dấu nhận dạng xuất hiện trong log cv-production.
+- Blackbox chuyển sang probe Kubernetes; probe_success bằng 1.
+- Startup bổ sung Harbor, cluster và kiểm tra rollout production.
+- Compose được giữ làm đường rollback.
+- Kiểm thử reboot sau chuyển đổi: chưa nghiệm thu.
+- Connector hiện chạy bằng systemd; chuyển vào edge là bước tiếp theo.
