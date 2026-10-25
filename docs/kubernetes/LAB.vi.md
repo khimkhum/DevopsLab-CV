@@ -44,3 +44,17 @@
 - Release metadata trước/sau giống nhau; smoke test PASS.
 - ReplicaSet lỗi về 0; Deployment có hai replica cập nhật và khả dụng.
 - Bài thử giữ nguyên image digest.
+
+## ResourceQuota, LimitRange và lưu trữ
+
+- Thực hành trong namespace riêng cv-practice.
+- LimitRange tự điền request 25m/32Mi, limit 100m/64Mi.
+- CPU limit 400m bị từ chối vì vượt maximum 300m.
+- CPU request 100m bị từ chối vì tổng request vượt quota.
+- PVC local-path Pending trước khi có consumer, sau đó Bound.
+- PV được cấp động, access mode RWO, reclaim policy Delete.
+- Thay Pod: UID thay đổi, dữ liệu PVC còn nguyên.
+- emptyDir mất dữ liệu sau khi thay Pod.
+- Smoke test Kubernetes và public sau thực hành PASS.
+- Chưa kiểm chứng phục hồi khi mất node/cluster.
+- local-path không thực thi giới hạn cứng dung lượng volume.
