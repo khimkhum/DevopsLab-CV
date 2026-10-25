@@ -58,3 +58,16 @@
 - Smoke test Kubernetes và public sau thực hành PASS.
 - Chưa kiểm chứng phục hồi khi mất node/cluster.
 - local-path không thực thi giới hạn cứng dung lượng volume.
+
+## Kustomize staging/production
+
+- Base dùng chung; mỗi môi trường có overlay riêng.
+- Staging: namespace cv-staging, một replica.
+- Production: namespace cv-production, hai replica.
+- Mỗi namespace có ResourceQuota, LimitRange, RBAC và NetworkPolicy.
+- Smoke test qua Ingress với HTTP Host tương ứng: PASS.
+- Access log xác nhận request vào đúng namespace.
+- Observer staging được xem staging, không được xem production.
+- Public smoke test chạy lại PASS.
+- Timeout PDF public trước đó chưa xác định nguyên nhân.
+- Đường public hiện vẫn qua Compose.

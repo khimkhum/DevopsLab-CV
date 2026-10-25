@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 """Validate the served release and its actual container HTTP protections."""
+import argparse
 import json
-import sys
 import urllib.error
 import urllib.request
 
-base = (sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8080').rstrip('/')
+parser = argparse.ArgumentParser()
+parser.add_argument("base", nargs="?", default="http://127.0.0.1:8080")
+parser.add_argument("--host", help="HTTP Host used to select an Ingress")
+args = parser.parse_args()
+
+base = args.base.rstrip("/")
+request_headers = {"User-Agent": "Khimkum-CV-SmokeTest/1.0"}
+if args.host:
+    request_headers["Host"] = args.host
 
 def get(path, method='GET'):
     req = urllib.request.Request(
         base + path,
         method=method,
-        headers={"User-Agent": "Khimkum-CV-SmokeTest/1.0"},
+        headers=request_headers,
     )
     try:
         return urllib.request.urlopen(req, timeout=10)

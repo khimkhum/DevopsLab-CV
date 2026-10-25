@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cv-production
+
+resources:
+  - ../../base
+  - namespace.yaml
+
+replicas:
+  - name: cv
+    count: 2
+
+images:
+  - name: harbor.cv.test:8443/cv/portfolio
+    digest: sha256:7d38473f34f52e231ef38e10ec067dab9e2271b54194a35530c1673061346925
+
+patches:
+  - target:
+      kind: Ingress
+      name: cv
+    patch: |-
+      - op: add
+        path: /spec/rules/0/host
+        value: khimkum.xyz
+
+  - target:
+      kind: RoleBinding
+      name: cv-observer
+    patch: |-
+      - op: replace
+        path: /subjects/0/namespace
+        value: cv-production
