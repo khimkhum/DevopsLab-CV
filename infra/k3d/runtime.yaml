@@ -1,0 +1,46 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+
+metadata:
+  name: cv-runtime
+
+servers: 1
+agents: 0
+
+image: khimkum-k3s:v1.35.9-k3s1-cv1
+
+network: cv-harbor-net
+
+kubeAPI:
+  host: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  hostPort: "6447"
+
+ports:
+  - port: "127.0.0.1:18082:80"
+    nodeFilters:
+      - loadbalancer
+
+registries:
+  config: |
+    mirrors:
+      "harbor.cv.test:8443":
+        endpoint:
+          - "https://harbor.cv.test:8443"
+    configs:
+      "harbor.cv.test:8443":
+        tls:
+          ca_file: "/etc/rancher/k3s/harbor-ca.crt"
+
+options:
+  k3d:
+    wait: true
+    timeout: "180s"
+  k3s:
+    extraArgs:
+      - arg: "--secrets-encryption"
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: false
+    switchCurrentContext: false

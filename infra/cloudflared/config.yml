@@ -3,7 +3,7 @@ credentials-file: /etc/cloudflared/80a223b2-30aa-4ff4-a53e-6b164f069cf8.json
 
 ingress:
   - hostname: khimkum.xyz
-    service: http://127.0.0.1:18081
+    service: http://127.0.0.1:18082
     originRequest:
       connectTimeout: 10s
       httpHostHeader: khimkum.xyz

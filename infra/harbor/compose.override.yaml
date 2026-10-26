@@ -25,10 +25,35 @@ services:
     <<: *cv-defaults
     container_name: cv-harbor-db
     mem_limit: 1g
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - -h
+        - 127.0.0.1
+        - -p
+        - "5432"
+        - -U
+        - postgres
+        - -d
+        - registry
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
 
   core:
     <<: *cv-defaults
     container_name: cv-harbor-core
+    depends_on: !override
+      log:
+        condition: service_started
+      registry:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
 
   portal:
     <<: *cv-defaults
@@ -54,6 +79,15 @@ services:
       harbor:
         aliases:
           - harbor.cv.test
+    depends_on: !override
+      log:
+        condition: service_started
+      registry:
+        condition: service_healthy
+      portal:
+        condition: service_healthy
+      core:
+        condition: service_healthy
 
   trivy-adapter:
     <<: *cv-defaults
