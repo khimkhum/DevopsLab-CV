@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - verify_runner
 
 workflow:
   rules:
@@ -69,3 +70,14 @@ test_site:
       - app/reports/junit.xml
     reports:
       junit: app/reports/junit.xml
+  runner_probe:
+    stage: verify_runner
+    tags:
+      - cv-harbor
+    dependencies: []
+    variables:
+      CI_DENY_TARGET: "172.26.0.3"
+    rules:
+      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+    script:
+      - node scripts/ci/runner-probe.mjs

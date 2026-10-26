@@ -1,0 +1,101 @@
+fullnameOverride: cv-ci-runner
+
+gitlabUrl: https://gitlab.com/
+concurrent: 1
+checkInterval: 5
+
+image:
+  registry: docker.io
+  repository: gitlab/gitlab-runner
+  tag: "alpine-v19.5.1@sha256:86a371df46b076bb4c510bca1751d428177d2567bd88e4047613bc7fa92d1a0e"
+
+rbac:
+  create: true
+  clusterWideAccess: false
+  rules:
+    - resources: ["pods"]
+      verbs: ["get", "list", "watch", "create", "delete"]
+    - resources: ["pods/attach", "pods/exec"]
+      verbs: ["get", "create", "patch", "delete"]
+    - resources: ["pods/log"]
+      verbs: ["get", "list"]
+    - resources: ["secrets"]
+      verbs: ["get", "create", "update", "delete"]
+    - resources: ["services"]
+      verbs: ["get", "create", "delete"]
+    - resources: ["serviceaccounts"]
+      verbs: ["get"]
+    - resources: ["events"]
+      verbs: ["list", "watch"]
+
+serviceAccount:
+  create: true
+  name: ci-runner-manager
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  privileged: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: RuntimeDefault
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+runners:
+  jobNamespace: ci-jobs
+  secret: cv-ci-runner-auth
+  config: |
+    [[runners]]
+      limit = 1
+      executor = "kubernetes"
+      shell = "sh"
+
+      [runners.kubernetes]
+        namespace = "ci-jobs"
+        service_account = "ci-job"
+        automount_service_account_token = false
+        privileged = false
+        allow_privilege_escalation = false
+        bearer_token_overwrite_allowed = false
+        namespace_overwrite_allowed = ""
+        service_account_overwrite_allowed = ""
+        pod_labels_overwrite_allowed = ""
+        poll_timeout = 180
+
+        image = "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402"
+        helper_image = "registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.5.1@sha256:ca7cc8f66a6c6931281aa2ae974b62f80111a4f578cabc442b1d39388a0dee91"
+
+        allowed_images = [
+          "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
+          "ghcr.io/osscontainertools/kaniko:v1.28.6-debug@sha256:7ab44d0131c3051b6dea128067e258c7afb5c4815082a93b9cf6c624f2140bf0"
+        ]
+
+        cpu_request = "250m"
+        cpu_limit = "2"
+        memory_request = "512Mi"
+        memory_limit = "2Gi"
+
+        helper_cpu_request = "50m"
+        helper_cpu_limit = "500m"
+        helper_memory_request = "64Mi"
+        helper_memory_limit = "256Mi"
+
+        [runners.kubernetes.pod_security_context.seccomp_profile]
+          type = "RuntimeDefault"
+
+        [[runners.kubernetes.host_aliases]]
+          ip = "{{ .Values.harborProxyIP }}"
+          hostnames = ["harbor.cv.test"]
+
+        [[runners.kubernetes.volumes.config_map]]
+          name = "harbor-ca"
+          mount_path = "/etc/ci-ca"
+          read_only = true

@@ -1,0 +1,44 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+
+metadata:
+  name: cv-ci
+
+servers: 1
+agents: 0
+
+image: khimkum-k3s:v1.35.9-k3s1-cv1
+network: cv-harbor-net
+
+kubeAPI:
+  host: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  hostPort: "6448"
+
+options:
+  k3d:
+    wait: true
+    timeout: "180s"
+    disableLoadbalancer: true
+
+  k3s:
+    extraArgs:
+      - arg: "--disable=traefik,servicelb,metrics-server,local-storage"
+        nodeFilters:
+          - server:*
+      - arg: "--cluster-cidr=10.52.0.0/16"
+        nodeFilters:
+          - server:*
+      - arg: "--service-cidr=10.53.0.0/16"
+        nodeFilters:
+          - server:*
+      - arg: "--cluster-dns=10.53.0.10"
+        nodeFilters:
+          - server:*
+      - arg: "--secrets-encryption"
+        nodeFilters:
+          - server:*
+
+  kubeconfig:
+    updateDefaultKubeconfig: false
+    switchCurrentContext: false
