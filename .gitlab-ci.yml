@@ -1,0 +1,57 @@
+stages:
+  - build
+  - test
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+default:
+  image: node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
+  tags:
+    - saas-linux-small-amd64
+  interruptible: true
+  timeout: 10m
+
+variables:
+  ASTRO_TELEMETRY_DISABLED: "1"
+  APP_REVISION: "$CI_COMMIT_SHA"
+
+build_site:
+  stage: build
+  cache:
+    key:
+      files:
+        - app/package-lock.json
+    paths:
+      - app/.npm/
+  script:
+    - cd app
+    - npm ci --cache .npm --prefer-offline --no-audit --no-fund
+    - npm run build
+  artifacts:
+    paths:
+      - app/dist/
+    expire_in: 1 week
+
+test_site:
+  stage: test
+  needs:
+    - job: build_site
+      artifacts: true
+  script:
+    - cd app
+    - npm test
+    - |
+      node --input-type=module <<'NODE'
+      import assert from 'node:assert/strict';
+      import { readFileSync } from 'node:fs';
+
+      const metadata = JSON.parse(
+        readFileSync('dist/version.json', 'utf8')
+      );
+
+      assert.equal(metadata.commit, process.env.CI_COMMIT_SHA);
+      console.log('PASS: artifact matches commit', metadata.commit);
+      NODE
