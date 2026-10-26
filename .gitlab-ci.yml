@@ -42,7 +42,14 @@ test_site:
       artifacts: true
   script:
     - cd app
-    - npm test
+    - mkdir -p reports
+    - |
+      node --test \
+        --test-reporter=spec \
+        --test-reporter=junit \
+        --test-reporter-destination=stdout \
+        --test-reporter-destination=reports/junit.xml \
+        tests/*.test.mjs
     - |
       node --input-type=module <<'NODE'
       import assert from 'node:assert/strict';
@@ -55,3 +62,10 @@ test_site:
       assert.equal(metadata.commit, process.env.CI_COMMIT_SHA);
       console.log('PASS: artifact matches commit', metadata.commit);
       NODE
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - app/reports/junit.xml
+    reports:
+      junit: app/reports/junit.xml
