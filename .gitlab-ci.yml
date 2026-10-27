@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - verify_runner
+  - image
 
 workflow:
   rules:
@@ -14,6 +15,12 @@ default:
     - saas-linux-small-amd64
   interruptible: true
   timeout: 10m
+  before_script:
+    - |
+      if [ -n "${HARBOR_DOCKER_AUTH:-}" ]; then
+        echo "ERROR: Harbor credential must be scoped to ci-harbor."
+        exit 1
+      fi
 
 variables:
   ASTRO_TELEMETRY_DISABLED: "1"
@@ -81,3 +88,32 @@ runner_probe:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
   script:
     - node scripts/ci/runner-probe.mjs
+build_images:
+  stage: image
+  image:
+    name: ghcr.io/osscontainertools/kaniko:v1.28.6-debug@sha256:7ab44d0131c3051b6dea128067e258c7afb5c4815082a93b9cf6c624f2140bf0
+    entrypoint: [""]
+  tags:
+    - cv-harbor
+  before_script: []
+  timeout: 20m
+  needs:
+    - job: runner_probe
+      artifacts: false
+  parallel:
+    matrix:
+      - BUILD_TARGET:
+          - runtime
+          - gateway
+  environment:
+    name: ci-harbor
+    action: prepare
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - sh scripts/ci/build-image.sh
+  artifacts:
+    name: "cv-${BUILD_TARGET}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - .artifacts/ci/images/$BUILD_TARGET/
+    expire_in: 1 week
