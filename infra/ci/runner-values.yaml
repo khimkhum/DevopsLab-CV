@@ -99,3 +99,6 @@ runners:
           name = "harbor-ca"
           mount_path = "/etc/ci-ca"
           read_only = true
+
+        [runners.kubernetes.retry_limits]
+          "exceeded quota" = 30
