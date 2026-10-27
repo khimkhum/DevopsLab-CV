@@ -19,8 +19,17 @@ RUN apk add --no-cache --upgrade \
       zlib musl musl-utils brotli-libs
 USER 101:101
 
-FROM nginx-patched AS gateway
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+FROM ${NGINX_IMAGE} AS nginx-patched
+USER 0
+RUN apk upgrade --no-cache \
+    && apk add --no-cache --upgrade \
+      zlib musl musl-utils \
+      'brotli-libs>=1.2.1-r0' \
+      'curl>=8.23.0-r0' \
+      'libcurl>=8.23.0-r0' \
+    && apk --no-network list --installed \
+      zlib musl musl-utils brotli-libs curl libcurl
+USER 101:101
 
 FROM nginx-patched AS runtime
 COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
