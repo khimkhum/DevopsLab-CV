@@ -1,100 +1,94 @@
-# Self-hosted CV DevOps Lab
+# Self-hosted CV · DevOps Lab
 
-A personal CV hosted on a Windows PC using Ubuntu WSL2,
-Kubernetes, Cloudflare Tunnel and a private Harbor registry.
+An end-to-end DevOps project delivering a personal CV website from
+source code to a public Kubernetes deployment, with automated security
+gates, GitOps staging delivery and controlled production releases.
 
-Live website: [khimkum.xyz](https://khimkum.xyz)
+**[Live website](https://khimkum.xyz)** ·
+**[GitLab CI](https://gitlab.com/levankhiem0000/devopslab-cv/-/pipelines)** ·
+**[GitOps repository](https://gitlab.com/levankhiem0000/devopslab-cv-gitops)**
 
 ## Architecture
 
 ```text
-Visitor
-  -> Cloudflare HTTPS
-  -> Cloudflare Tunnel / cloudflared in WSL
-  -> localhost:18082
-  -> Traefik
-  -> cv-production Service
-  -> CV Pods
+Delivery
+GitLab CI → Build & Test → Kaniko → Harbor → Trivy Gates
+  → GitOps/staging → Argo CD Auto-sync → Staging Verification
+  → Production MR → GitOps/main → Argo CD Manual Sync
 
-GitLab application repository
-  -> Build and test
-  -> Isolated Kubernetes runner checks
-  -> Kaniko build and push to Harbor
-  -> Trivy security gate by digest
-  -> Vulnerability report, SPDX SBOM and approved image
+Public traffic
+Visitor → Cloudflare HTTPS → Tunnel → Traefik → Service → CV Pods
 
-GitOps repository
-  -> Argo CD
-  -> cv-staging
-  -> Auto-sync and self-heal
-
-Prometheus -> Blackbox Exporter -> CV health endpoint
-Grafana -> Prometheus
-Prometheus alerts -> Alertmanager
+Observability
+Prometheus → Blackbox Exporter → Production Health Endpoint
+Grafana → Prometheus → Alertmanager
 ```
 
-The public origin currently uses Kubernetes. Docker Compose is retained
-for local services and the fallback deployment path.
+## What this project demonstrates
 
-## Implemented
+- **Automated delivery:** an eight-job GitLab pipeline builds and tests
+  the website, publishes runtime/gateway images and updates GitOps staging
+  after both security gates pass.
+- **Container security:** non-root Nginx, read-only filesystems, dropped
+  capabilities, resource limits and Trivy gates blocking HIGH/CRITICAL
+  findings. Pipelines preserve vulnerability reports and SPDX SBOMs.
+- **Kubernetes operations:** probes, rolling updates, Ingress, RBAC,
+  NetworkPolicy, ResourceQuota, LimitRange and storage exercises.
+- **Controlled GitOps:** staging auto-sync/self-heal; production promotion
+  through protected-branch MRs and manual synchronization.
+- **Release recovery:** production rollback and restoration through
+  Git revert MRs, verified against image digests and public version metadata.
+- **Host automation:** Windows sign-in starts Docker, the WSL runtime stack
+  and readiness checks; cloudflared runs as a systemd service.
 
-- Static CV website and downloadable PDF.
-- Non-root Nginx runtime, read-only root filesystem and resource limits.
-- Cloudflare Tunnel with loopback-only origin access.
-- Windows sign-in startup automation.
-- Harbor TLS, separate push/pull robots and digest-based deployment.
-- Kubernetes probes, Ingress, ConfigMap, RBAC and NetworkPolicy.
-- ResourceQuota, LimitRange and PVC/PV practice.
-- Failed-rollout recovery exercises.
-- Seven-job GitLab pipeline with runtime/gateway image builds.
-- Trivy gates blocking HIGH/CRITICAL findings.
-- Vulnerability reports, SPDX SBOMs and approved digest artifacts.
-- Argo CD AppProject restricting the Git source and staging destination.
-- Staging manual sync, auto-sync, Git revert and self-heal verified.
-- Prometheus, Grafana, Blackbox Exporter and Alertmanager.
+## Verified release exercise
 
-## Verification
+| Operation | GitOps revision | Public application commit |
+|---|---|---|
+| Production promotion | `8275a3b` | `73e16e7d` |
+| Rollback | `d350b09` | `6e2a6d17` |
+| Restoration | `d4c95615` | `73e16e7d` |
 
-Smoke tests check page content, PDF download, health, release metadata,
-security headers, missing routes and HTTP method restrictions.
+Recorded on **2026-10-28**. Each release was checked for:
 
-The staging GitOps exercise verified:
-- Git changes automatically update the Deployment.
-- Git revert restores replica configuration.
-- Live replica drift is corrected without changing Git.
-- The approved image digest and application version remain consistent.
+- Expected Argo CD revision and Synced/Healthy status.
+- Correct Deployment image digest and two available replicas.
+- Matching application commit from public `/version.json`.
+- Passing local/public smoke tests, including PDF download,
+  security headers, route handling and HTTP method restrictions.
 
-See [staging evidence](docs/gitops/STAGING.vi.md).
+[View the production verification record](docs/gitops/PRODUCTION.vi.md)
 
-## Operational scope
+## Key design decisions
 
-- The PC must remain awake and connected to the Internet.
-- Automatic startup begins after Windows sign-in.
-- Runtime and CI use separate k3d clusters sharing one Docker host.
-- This is a single-host, single-node lab.
-- Monitoring and Argo CD management access remain local.
-- Staging uses auto-sync/self-heal; prune remains disabled.
-- Production GitOps promotion is the next implementation stage.
-- Intermittent public TLS timeouts are recorded; smoke-test retries
-  are bounded and do not bypass HTTP/content/security assertions.
-- Secrets, kubeconfigs and local artifacts are excluded from Git.
+| Decision | Reason |
+|---|---|
+| Promote the same image digest | Production receives the artifact tested on staging |
+| Separate CI and runtime clusters | Separate job execution and Kubernetes API access |
+| Scope credentials by job environment | Limit where registry and GitOps credentials are available |
+| Restrict Argo CD with AppProjects | Constrain repositories, namespaces and resource kinds |
+| Roll back through Git | Preserve deployment history and MR review records |
 
-## Roadmap
+## Stack
 
-- Phase 1: Linux/WSL foundations — applied throughout the project.
-- Phase 2: Containers, Harbor and monitoring — core work implemented.
-- Phase 3: Kubernetes — core exercises verified.
-- Phase 4: CI build/test/push/security gate — verified.
-- Phase 5: Staging GitOps and self-heal — verified.
-- Phase 6: Controlled staging updates, production promotion and
-  release rollback — next.
+**Astro · Nginx · Docker · Harbor · Kaniko · Trivy · GitLab CI ·
+K3s/k3d · Kustomize · Helm · Argo CD · Cloudflare Tunnel ·
+Prometheus · Grafana · Alertmanager · Bash · Python · PowerShell**
+
+## Scope
+
+This is a single-PC lab running on Windows and Ubuntu WSL2.
+CI and runtime clusters share the Docker host; two replicas do not provide
+physical-host high availability.
+
+Management endpoints remain local. Alert delivery to Alertmanager was
+verified; external notifications are not configured.
 
 ## Documentation
 
-- [Project guide](PROJECT_GUIDE.vi.md)
-- [Kubernetes journal](docs/kubernetes/LAB.vi.md)
-- [Staging GitOps evidence](docs/gitops/STAGING.vi.md)
-- [Release exercises](docs/deployment/RELEASE.vi.md)
-
-Some earlier journals describe previous deployment stages.
-The architecture above represents the current public request path.
+- [Architecture](docs/architecture/FLOW.vi.md)
+- [Kubernetes exercises](docs/kubernetes/LAB.vi.md)
+- [CI and image release exercises](docs/deployment/RELEASE.vi.md)
+- [Staging GitOps and self-heal](docs/gitops/STAGING.vi.md)
+- [Production promotion and rollback](docs/gitops/PRODUCTION.vi.md)
+- [Setup and project guide](PROJECT_GUIDE.vi.md)

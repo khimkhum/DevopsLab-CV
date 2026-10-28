@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cv-production
+  namespace: argocd
+spec:
+  project: cv-production
+
+  source:
+    repoURL: https://gitlab.com/levankhiem0000/devopslab-cv-gitops.git
+    targetRevision: main
+    path: overlays/production
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cv-production
+
+  syncPolicy:
+    syncOptions:
+      - FailOnSharedResource=true
+
+  revisionHistoryLimit: 5
