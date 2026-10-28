@@ -1,79 +1,100 @@
 # Self-hosted CV DevOps Lab
 
-Personal CV hosted on a Windows PC using Ubuntu WSL2, Docker Compose
-and Cloudflare Tunnel.
+A personal CV hosted on a Windows PC using Ubuntu WSL2,
+Kubernetes, Cloudflare Tunnel and a private Harbor registry.
 
-Live website: https://khimkum.xyz
+Live website: [khimkum.xyz](https://khimkum.xyz)
 
 ## Architecture
 
-Visitor --HTTPS--> Cloudflare --Tunnel--> cloudflared in WSL
-    --> loopback gateway :8080 --> Nginx CV container
+```text
+Visitor
+  -> Cloudflare HTTPS
+  -> Cloudflare Tunnel / cloudflared in WSL
+  -> localhost:18082
+  -> Traefik
+  -> cv-production Service
+  -> CV Pods
 
-Prometheus --> Blackbox Exporter --> CV health endpoint
-Grafana --> Prometheus
-Prometheus alerts --> Alertmanager
+GitLab application repository
+  -> Build and test
+  -> Isolated Kubernetes runner checks
+  -> Kaniko build and push to Harbor
+  -> Trivy security gate by digest
+  -> Vulnerability report, SPDX SBOM and approved image
 
-Windows sign-in --> Scheduled Task --> start Docker Desktop
-    --> start Ubuntu WSL --> wait for Docker Engine --> Compose
+GitOps repository
+  -> Argo CD
+  -> cv-staging
+  -> Auto-sync and self-heal
 
-The tunnel runs as a systemd service under a dedicated Linux account.
+Prometheus -> Blackbox Exporter -> CV health endpoint
+Grafana -> Prometheus
+Prometheus alerts -> Alertmanager
+```
+
+The public origin currently uses Kubernetes. Docker Compose is retained
+for local services and the fallback deployment path.
 
 ## Implemented
 
-- Static CV website with a downloadable PDF.
-- Multi-stage image build and unprivileged Nginx runtime.
-- Read-only container root filesystems and temporary writable storage.
-- Loopback-only published ports for local access.
-- Public HTTPS through Cloudflare Tunnel.
-- Prometheus, Blackbox Exporter, Grafana and Alertmanager.
-- Origin outage alert tested by stopping and recovering the CV service.
-- Local and public HTTP smoke tests.
-- Startup automation after Windows sign-in.
-- Reboot and external mobile-network checks completed.
-- Private Harbor registry with TLS and separate push/pull robot accounts.
-- Trivy scanning and runtime package remediation.
-- CV and gateway deployment by immutable artifact digest.
+- Static CV website and downloadable PDF.
+- Non-root Nginx runtime, read-only root filesystem and resource limits.
+- Cloudflare Tunnel with loopback-only origin access.
+- Windows sign-in startup automation.
+- Harbor TLS, separate push/pull robots and digest-based deployment.
+- Kubernetes probes, Ingress, ConfigMap, RBAC and NetworkPolicy.
+- ResourceQuota, LimitRange and PVC/PV practice.
+- Failed-rollout recovery exercises.
+- Seven-job GitLab pipeline with runtime/gateway image builds.
+- Trivy gates blocking HIGH/CRITICAL findings.
+- Vulnerability reports, SPDX SBOMs and approved digest artifacts.
+- Argo CD AppProject restricting the Git source and staging destination.
+- Staging manual sync, auto-sync, Git revert and self-heal verified.
+- Prometheus, Grafana, Blackbox Exporter and Alertmanager.
 
 ## Verification
 
-- Smoke tests check page content, PDF download, health, release metadata,
-  security headers, missing routes and HTTP method restrictions.
-- The outage exercise verified Pending/Firing, Alertmanager delivery
-  and recovery to probe_success = 1.
-- Public access was checked over a mobile network.
-- Startup logs are stored locally under .artifacts/ and excluded from Git.
+Smoke tests check page content, PDF download, health, release metadata,
+security headers, missing routes and HTTP method restrictions.
+
+The staging GitOps exercise verified:
+- Git changes automatically update the Deployment.
+- Git revert restores replica configuration.
+- Live replica drift is corrected without changing Git.
+- The approved image digest and application version remain consistent.
+
+See [staging evidence](docs/gitops/STAGING.vi.md).
 
 ## Operational scope
 
 - The PC must remain awake and connected to the Internet.
 - Automatic startup begins after Windows sign-in.
-- Grafana, Prometheus and Alertmanager remain accessible locally.
-- Blackbox currently probes the internal CV origin.
-- Alertmanager notification channels are not configured yet.
-- The startup script recreates this Compose stack to refresh Docker
-  Desktop WSL bind mounts. Named volumes retain monitoring data.
-- Credentials and local secrets are excluded from the repository.
+- Runtime and CI use separate k3d clusters sharing one Docker host.
+- This is a single-host, single-node lab.
+- Monitoring and Argo CD management access remain local.
+- Staging uses auto-sync/self-heal; prune remains disabled.
+- Production GitOps promotion is the next implementation stage.
+- Intermittent public TLS timeouts are recorded; smoke-test retries
+  are bounded and do not bypass HTTP/content/security assertions.
+- Secrets, kubeconfigs and local artifacts are excluded from Git.
 
-## Roadmap status
+## Roadmap
 
-- Phase 1: Linux and WSL foundations used throughout the lab.
-- Phase 2: CV, Compose, monitoring, Harbor and digest-based deployment
-  implemented; rollback rehearsal and Kaniko exercise remain.
-
-- Phase 3: In progress — Kubernetes deployment, Ingress, ConfigMap,
-  RBAC, NetworkPolicy and failed-rollout recovery verified.
-- Phase 4: GitLab CI and runner — planned.
-- Phase 5: Argo CD GitOps — planned.
-- Phase 6: staging/production delivery and rollback — planned.
-
-GitHub hosts this portfolio repository. GitLab CI remains part of the
-original learning roadmap.
+- Phase 1: Linux/WSL foundations — applied throughout the project.
+- Phase 2: Containers, Harbor and monitoring — core work implemented.
+- Phase 3: Kubernetes — core exercises verified.
+- Phase 4: CI build/test/push/security gate — verified.
+- Phase 5: Staging GitOps and self-heal — verified.
+- Phase 6: Controlled staging updates, production promotion and
+  release rollback — next.
 
 ## Documentation
 
 - [Project guide](PROJECT_GUIDE.vi.md)
-- [Architecture](docs/architecture/FLOW.vi.md)
-- [Local deployment](docs/deployment/LOCAL.vi.md)
-- [Learning journal](notes/learning-log.md)
-- [Release evidence and recovery](docs/deployment/RELEASE.vi.md)
+- [Kubernetes journal](docs/kubernetes/LAB.vi.md)
+- [Staging GitOps evidence](docs/gitops/STAGING.vi.md)
+- [Release exercises](docs/deployment/RELEASE.vi.md)
+
+Some earlier journals describe previous deployment stages.
+The architecture above represents the current public request path.

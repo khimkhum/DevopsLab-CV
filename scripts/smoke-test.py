@@ -4,27 +4,80 @@ import argparse
 import json
 import urllib.error
 import urllib.request
+import http.client
+import io
+import sys
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("base", nargs="?", default="http://127.0.0.1:8080")
 parser.add_argument("--host", help="HTTP Host used to select an Ingress")
+parser.add_argument("--timeout", type=float, default=10)
+parser.add_argument("--retries", type=int, default=0)
 args = parser.parse_args()
+if args.timeout <= 0 or not 0 <= args.retries <= 3:
+    parser.error("--timeout must be positive; --retries must be 0..3")
 
 base = args.base.rstrip("/")
 request_headers = {"User-Agent": "Khimkum-CV-SmokeTest/1.0"}
 if args.host:
     request_headers["Host"] = args.host
 
+class BufferedResponse(io.BytesIO):
+    def __init__(self, response):
+        self.status = response.status
+        self.headers = response.headers
+        super().__init__(response.read())
+
+
 def get(path, method='GET'):
-    req = urllib.request.Request(
-        base + path,
-        method=method,
-        headers=request_headers,
-    )
-    try:
-        return urllib.request.urlopen(req, timeout=10)
-    except urllib.error.HTTPError as error:
-        return error
+    for attempt in range(args.retries + 1):
+        req = urllib.request.Request(
+            base + path,
+            method=method,
+            headers=request_headers,
+        )
+
+        try:
+            try:
+                response = urllib.request.urlopen(
+                    req, timeout=args.timeout
+                )
+            except urllib.error.HTTPError as error:
+                response = error
+
+            with response:
+                return BufferedResponse(response)
+
+        except (
+            TimeoutError,
+            ConnectionError,
+            urllib.error.URLError,
+            http.client.IncompleteRead,
+        ) as error:
+            reason = getattr(error, 'reason', error)
+
+            if method not in ('GET', 'HEAD'):
+                raise
+
+            if not isinstance(reason, (
+                TimeoutError,
+                ConnectionError,
+                http.client.IncompleteRead,
+            )):
+                raise
+
+            if attempt == args.retries:
+                raise
+
+            print(
+                f'RETRY {attempt + 1}/{args.retries}: '
+                f'{method} {path}: '
+                f'{type(reason).__name__}: {reason}',
+                file=sys.stderr,
+            )
+
+            time.sleep(min(2 ** attempt, 4))
 
 home = get('/')
 assert home.status == 200, f'Home returned {home.status}'

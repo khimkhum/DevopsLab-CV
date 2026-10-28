@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cv-staging
+  namespace: argocd
+spec:
+  project: cv-staging
+
+  source:
+    repoURL: https://gitlab.com/levankhiem0000/devopslab-cv-gitops.git
+    targetRevision: main
+    path: overlays/staging
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cv-staging
+
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
+      prune: false
+      allowEmpty: false
+
+  revisionHistoryLimit: 5

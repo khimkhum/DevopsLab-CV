@@ -18,3 +18,4 @@ coverage/
 infra/cloudflared/*.json
 __pycache__/
 *.py[cod]
+/gitops/
