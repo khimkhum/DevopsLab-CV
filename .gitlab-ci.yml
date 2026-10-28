@@ -4,6 +4,7 @@ stages:
   - verify_runner
   - image
   - security
+  - gitops
 
 workflow:
   rules:
@@ -18,8 +19,9 @@ default:
   timeout: 10m
   before_script:
     - |
-      if [ -n "${HARBOR_DOCKER_AUTH:-}" ]; then
-        echo "ERROR: Harbor credential must be scoped to ci-harbor."
+      if [ -n "${HARBOR_DOCKER_AUTH:-}" ] ||
+         [ -n "${GITOPS_API_TOKEN:-}" ]; then
+        echo "ERROR: credentials must use their scoped environments."
         exit 1
       fi
 
@@ -153,3 +155,26 @@ security_gate:
     expire_in: 1 week
     paths:
       - .artifacts/ci/security/$BUILD_TARGET/
+update_staging:
+  stage: gitops
+  tags:
+    - cv-harbor
+  before_script: []
+  timeout: 5m
+  interruptible: false
+  resource_group: cv-staging-gitops
+  needs:
+    - job: security_gate
+      artifacts: true
+  environment:
+    name: ci-gitops
+    action: prepare
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - node scripts/ci/update-staging.mjs
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - .artifacts/ci/gitops/staging-update.json

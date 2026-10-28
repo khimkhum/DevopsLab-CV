@@ -8,7 +8,7 @@ spec:
 
   source:
     repoURL: https://gitlab.com/levankhiem0000/devopslab-cv-gitops.git
-    targetRevision: main
+    targetRevision: staging
     path: overlays/staging
 
   destination:
